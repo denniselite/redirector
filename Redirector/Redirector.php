@@ -132,4 +132,59 @@ class Redirector implements IRedirectable
     {
         return $this->_config['targetHost'] . $route;
     }
+
+    /**
+     * Convert from CSV file to 'key' => 'value' array for configuration. E.g. next following links
+     * ```
+     *    http://old-domain.com/;http://new-domain.com/
+     *    http://old-domain.com/some-article;http://new-domain.com/another-article
+     * ```
+     * will convert to
+     * ```
+     *    '/' => '/',
+     *    'some-article' => 'another-article'
+     * ```
+     * Is is a helper for routes configuration management
+     *
+     * @param resource $file
+     * @return array
+     * @throws \Exception
+     */
+    public static function getRoutesFromCSV($file)
+    {
+        if (!is_resource($file)) {
+            throw new \Exception('getRoutesFromCSV: input value is not a Resource');
+        }
+        $arrayConfig = [];
+        while (!feof($file)) {
+
+            // Create the row as array with table date values
+            $rowString = fgets($file);
+            $routePair = explode(';', $rowString);
+
+            // Remove empty columns
+            foreach ($routePair as $key => $value) {
+                if (empty($value)) {
+                    unset($routePair[$key]);
+                }
+            }
+
+            // Process only "pairs" arrays
+            if (count($routePair) != 2) {
+                continue;
+            }
+
+            // Remove domains
+            foreach ($routePair as $key => $value) {
+                $value = trim($value);
+                $url = parse_url($value);
+                $uriQuery = (isset($url['query'])) ? '?' . $url['query'] : '';
+                $uriPath = (isset($url['path'])) ? $url['path'] : '/';
+                $routePair[$key] = $uriPath . $uriQuery;
+            }
+
+            $arrayConfig[$routePair[0]] = $routePair[1];
+        }
+        return $arrayConfig;
+    }
 }

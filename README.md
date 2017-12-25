@@ -31,6 +31,36 @@ where:
 
 Warning! Keys and values for routes map should start with '/'! 
 
+### CSV links processing
+
+You also can use CSV files with 2 columns for old-new website links matching via `getRoutesFromCSV($file)` method.
+
+Convert from CSV file to 'key' => 'value' array for configuration. E.g. next following links
+
+ ```
+    http://old-domain.com/;http://new-domain.com/
+    http://old-domain.com/some-article;http://new-domain.com/another-article
+ ```
+
+ will convert to
+
+ ```php
+ [
+    '/' => '/',
+    'some-article' => 'another-article'
+ ];   
+ ```
+
+Is is a helper for routes configuration management; as example:
+
+```php
+$csvRoutes = fopen('links.csv', 'r');
+$routesSet = Redirector\Redirector::getRoutesFromCSV($csvRoutes);
+fclose($csvRoutes);
+$config['routes'] = $routesSet;
+(new \Redirector\Redirector)->setConfig($config)->run();
+```
+ 
 ==============================================================
 
 ### Usage examples
