@@ -7,6 +7,7 @@
  */
 
 return [
+    'forceRedirect' => false,
     'targetHost' => 'target-host.local',
     'routes' => [
         '/some-article' => '/some-article-on-target'

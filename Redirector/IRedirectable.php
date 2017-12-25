@@ -11,11 +11,21 @@ namespace Redirector;
 interface IRedirectable
 {
     /**
-     * @param string $host
+     * @param string $currentURI
+     */
+    public function processURI($currentURI);
+
+    /**
+     * @return void
+     */
+    public function run();
+
+    /**
+     * @param [] $config
      * @return $this
      * @throws \Exception
      */
-    public function setTargetHost($host);
+    public function setConfig($config);
 
     /**
      * @param [] $routes
@@ -24,7 +34,9 @@ interface IRedirectable
     public function setRoutes($routes);
 
     /**
-     * @return void
+     * @param string $host
+     * @return $this
+     * @throws \Exception
      */
-    public function run();
+    public function setTargetHost($host);
 }

@@ -13,31 +13,76 @@ class Redirector implements IRedirectable
     private $_config = [];
 
     /**
+     * If route could not be found redirect to main page on target host
+     * In config:
+     * ```
+     *    'targetHost'
+     * ```
+     * @var bool
+     */
+    private $_isForceRedirect = false;
+
+    /**
      * @return void
      * @throws \Exception
      */
     public function run()
     {
-        if (!$this->checkConfig()) {
-            throw new \Exception('Invalid configuration');
+        if ($err = $this->checkConfig($this->_config)) {
+            throw new \Exception('Wrong configuration: ' . $err);
         }
-        $currentRoute = $_SERVER['REQUEST_URI'];
-        echo $currentRoute;
+        $currentURI = $_SERVER['REQUEST_URI'];
+        $this->processURI($currentURI);
     }
 
     /**
-     * @return bool
+     * @param string $currentURI
      */
-    protected function checkConfig()
+    public function processURI($currentURI)
     {
-        $isActual = true;
-        if (!isset($this->_config['targetHost']) || !is_string($this->_config['targetHost'])) {
-            $isActual = false;
+        $inRoutes = isset($this->_config['routes'][$currentURI]);
+        if ($inRoutes) {
+            $link = $this->getLink($this->_config['routes'][$currentURI]);
+            $this->sendResponse($link);
+        } elseif ($this->_isForceRedirect) {
+            $link = $this->getLink();
+            $this->sendResponse($link);
         }
-        if (!isset($this->_config['routes']) || !is_array($this->_config['routes'])) {
-            $isActual = false;
+    }
+
+    /**
+     * @param $link
+     */
+    public function sendResponse($link)
+    {
+        header('Location: ' . $link);
+        http_response_code(308);
+        printf('<a href="%s">%s</a>', $link, $link);
+        exit();
+    }
+
+    /**
+     * @param [] $config
+     * @return $this
+     * @throws \Exception
+     */
+    public function setConfig($config)
+    {
+        if ($err = $this->checkConfig($config)) {
+            throw new \Exception('Wrong configuration: ' . $err);
         }
-        return $isActual;
+        $this->_config = $config;
+        return $this;
+    }
+
+    /**
+     * @param bool $forceRedirect
+     * @return $this
+     */
+    public function setIsForceRedirect($forceRedirect)
+    {
+        $this->_isForceRedirect = $forceRedirect;
+        return $this;
     }
 
     /**
@@ -58,5 +103,33 @@ class Redirector implements IRedirectable
     {
         $this->_config['routes'] = $routes;
         return $this;
+    }
+
+    /**
+     * @param [] $config
+     * @return null|string
+     */
+    protected function checkConfig($config)
+    {
+        $error = null;
+        if (!isset($config['targetHost']) || !is_string($config['targetHost'])) {
+            $error = 'Param targetHost is invalid';
+        }
+        if (!isset($config['routes']) || !is_array($config['routes'])) {
+            $error = 'Param routes is invalid';
+        }
+        if (!isset($config['forceRedirect']) || !is_bool($config['forceRedirect'])) {
+            $error = 'Param forceRedirect is invalid';
+        }
+        return $error;
+    }
+
+    /**
+     * @param $route
+     * @return string
+     */
+    protected function getLink($route = '')
+    {
+        return $this->_config['targetHost'] . $route;
     }
 }
