@@ -8,8 +8,15 @@ You should create `config.php` configuration file like this:
 
 ```php
 return [
+    
+    // redirect user to target even route is not found in configuration
     'forceRedirect' => false,
+    
+    // target web-site domain for user redirecting
     'targetHost' => 'target-host.local',
+    
+    // key-value set, "link from current web-site" => "link to page on the new web-site"
+    // every link should start with '/'
     'routes' => [
         '/some-article' => '/some-article-on-target'
     ]
@@ -18,11 +25,11 @@ return [
 
 where:
 
-* forceRedirect - redirect user even route didn't found in configuration
+* forceRedirect - redirect user even route is not found in configuration
 * targetHost - target web-site domain for user redirecting
-* routes - key-value set, where _key_ is a link from current web-site and _value_ is a link to page on the new web-site
+* routes - key-value set, where __key__ is a link from current web-site and __value__ is a link to page on the new web-site
 
-Warning! Keys and values for routes map should start from '/'! 
+Warning! Keys and values for routes map should start with '/'! 
 
 ==============================================================
 
