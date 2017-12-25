@@ -51,7 +51,7 @@ Convert from CSV file to 'key' => 'value' array for configuration. E.g. next fol
  ];   
  ```
 
-Is is a helper for routes configuration management; as example:
+It is a helper for routes configuration management; as example:
 
 ```php
 $csvRoutes = fopen('links.csv', 'r');
