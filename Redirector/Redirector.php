@@ -40,13 +40,31 @@ class Redirector implements IRedirectable
      */
     public function processURI($currentURI)
     {
-        $inRoutes = isset($this->_config['routes'][$currentURI]);
-        if ($inRoutes) {
-            $link = $this->getLink($this->_config['routes'][$currentURI]);
+        $redirectURI = $this->getTargetLinkKey($currentURI);
+        if (is_string($redirectURI)) {
+            $link = $this->getLink($this->_config['routes'][$redirectURI]);
             $this->sendResponse($link);
         } elseif ($this->_isForceRedirect) {
             $link = $this->getLink();
             $this->sendResponse($link);
+        }
+    }
+
+    /**
+     * @param string $requestedURI
+     * @return null|string
+     */
+    public function getTargetLinkKey($requestedURI)
+    {
+        $currentURIs = array_keys($this->_config['routes']);
+        $parsedRequestedURI = parse_url($requestedURI);
+
+        if (isset($parsedRequestedURI['query'])) {
+            return $this->getByDeepCompare($currentURIs, $parsedRequestedURI);
+        } else {
+            return (isset($this->_config['routes'][$requestedURI]))
+                ? $this->_config['routes'][$requestedURI]
+                : null;
         }
     }
 
@@ -122,6 +140,40 @@ class Redirector implements IRedirectable
             $error = 'Param forceRedirect is invalid';
         }
         return $error;
+    }
+
+    /**
+     * Compare queries without arguments order; e.g.
+     *  ```
+     *      /index.php?id=101&Itemid=562&option=com_content&view=article
+     *      /index.php?option=com_content&view=article&id=101&Itemid=562
+     *  ```
+     *  will be equal. Return correct route key if exists.
+     *
+     * @param $currentURIs
+     * @param $parsedRequestedQuery
+     * @return null|string
+     */
+    private function getByDeepCompare(&$currentURIs, &$parsedRequestedQuery)
+    {
+        $key = null;
+        foreach ($currentURIs as $uri) {
+            $parsedURI = parse_url($uri);
+            if (isset($parsedURI['query'])) {
+
+                // split strings by delimiter '&' and find the Zero diff
+                $requestedURIArgs = explode('&', $parsedRequestedQuery['query']);
+                sort($requestedURIArgs);
+                $uriArgs = explode('&', $parsedURI['query']);
+                sort($uriArgs);
+                $result = array_diff($uriArgs, $requestedURIArgs);
+                if (count($result) === 0) {
+                    $key = $uri;
+                    break;
+                }
+            }
+        }
+        return $key;
     }
 
     /**
