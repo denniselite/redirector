@@ -1,6 +1,19 @@
 # Redirector
 
-This is a package for redirecting specific incoming requests to another resource.
+This is a package for redirecting specific incoming HTTP-requests to another resource.
+
+Features:
+
+ - 'True' redirect status 308 Permanent Redirect ([RFC 7538](https://tools.ietf.org/html/rfc7538))
+ - Force and soft redirecting by unhandled links;
+ - Works via and without composer;
+ - CVS files parsing with links mapping supported;
+ - Deep matching by query params - compare queries without arguments order; e.g.
+```
+  /index.php?id=101&Itemid=562&option=com_content&view=article
+  /index.php?option=com_content&view=article&id=101&Itemid=562
+```
+will be equal.
 
 ### Config example
 
@@ -109,7 +122,6 @@ $config = require_once "config.example.php";
 ```  
 
 5. Done!
-
 
 You also are able to use only zip-downloading mechanism for this package usage. For it you should import src files from package:
 
